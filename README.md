@@ -1,1 +1,1 @@
-# GameofLifeMusicGenerator
+# Game of Life Music Generator
