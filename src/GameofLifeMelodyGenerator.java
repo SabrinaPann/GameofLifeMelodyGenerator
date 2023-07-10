@@ -37,10 +37,13 @@ public class GameofLifeMelodyGenerator {
     private List<Integer> selectedCellNotes;
 
     public GameofLifeMelodyGenerator() {
+
         grid = new boolean[GRID_ROWS][GRID_COLUMNS];
         nextGrid = new boolean[GRID_ROWS][GRID_COLUMNS];
         cellPanels = new JPanel[GRID_ROWS][GRID_COLUMNS];
         frame = new JFrame("Game of Life Melody Generator");
+        ImageIcon icon = new ImageIcon("/Users/sabrina/IdeaProjects/ciao/src/music+notes+icon.png");
+        frame.setIconImage(icon.getImage());
         gridPanel = new JPanel(new GridLayout(GRID_ROWS, GRID_COLUMNS));
         controlPanel = new JPanel();
         randomCombinationButton = new JButton("Random Combination");
