@@ -9,18 +9,18 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameofLifeMusicGenerator {
+public class GameofLifeMelodyGenerator {
 
     private static final int GRID_ROWS = 8;
-    private static final int GRID_COLUMNS = 12;
+    private static final int GRID_COLUMNS = 14;
     private static final int CELL_SIZE = 50;
     private static final int BUTTON_WIDTH = 150;
     private static final int BUTTON_HEIGHT = 45;
     private static final int DELAY = 100;
-    private static final int[] notesForRow = {57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76};
+    private static final int[] notesForRow = {55,57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77};
     private boolean[][] grid;
     private boolean[][] nextGrid;
-    private String[] columnLabels = {"A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5","E5"};
+    private String[] columnLabels = {"G3","A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5","E5","F5"};
     private JPanel[][] cellPanels;
     private JFrame frame;
     private JPanel controlPanel;
@@ -36,11 +36,11 @@ public class GameofLifeMusicGenerator {
     private List<Integer> notesToPlay;
     private List<Integer> selectedCellNotes;
 
-    public GameofLifeMusicGenerator() {
+    public GameofLifeMelodyGenerator() {
         grid = new boolean[GRID_ROWS][GRID_COLUMNS];
         nextGrid = new boolean[GRID_ROWS][GRID_COLUMNS];
         cellPanels = new JPanel[GRID_ROWS][GRID_COLUMNS];
-        frame = new JFrame("Game of Life Music Generator");
+        frame = new JFrame("Game of Life Melody Generator");
         gridPanel = new JPanel(new GridLayout(GRID_ROWS, GRID_COLUMNS));
         controlPanel = new JPanel();
         randomCombinationButton = new JButton("Random Combination");
@@ -53,6 +53,7 @@ public class GameofLifeMusicGenerator {
         initializeGrid();
         initializeMidi();
     }
+
 
     private void initializeGUI() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -78,7 +79,6 @@ public class GameofLifeMusicGenerator {
         }
 
         // Control Panel
-        randomCombinationButton.addActionListener(new RandomCombinationButtonListener());
         randomCombinationButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         nextGenerationButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         playRowOrderButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
@@ -93,6 +93,7 @@ public class GameofLifeMusicGenerator {
         controlPanel.add(playColumnOrderButton);
         controlPanel.add(cleanButton);
 
+        randomCombinationButton.addActionListener(new RandomCombinationButtonListener());
         nextGenerationButton.addActionListener(new NextGenerationButtonListener());
         cleanButton.addActionListener(new CleanButtonListener());
         playRowOrderButton.addActionListener(new PlayRowOrderButtonListener());
@@ -113,6 +114,7 @@ public class GameofLifeMusicGenerator {
     }
 
 
+
     private void initializeGrid() {
         for (int row = 0; row < GRID_ROWS; row++) {
             for (int col = 0; col < GRID_COLUMNS; col++) {
@@ -122,6 +124,7 @@ public class GameofLifeMusicGenerator {
             }
         }
     }
+
 
     private void initializeMidi() {
         try {
@@ -135,13 +138,16 @@ public class GameofLifeMusicGenerator {
         }
     }
 
+
     private void playMidiNote(int note) {
         midiChannel.noteOn(note, 100);
     }
 
+
     private void stopMidiNote() {
         midiChannel.allNotesOff();
     }
+
 
     private void updateGrid() {
         for (int row = 0; row < GRID_ROWS; row++) {
@@ -155,6 +161,7 @@ public class GameofLifeMusicGenerator {
             }
         }
     }
+
 
     private int countNeighbors(int row, int col) {
         int count = 0;
@@ -173,11 +180,13 @@ public class GameofLifeMusicGenerator {
         return count;
     }
 
+
     private void swapGrids() {
         boolean[][] temp = grid;
         grid = nextGrid;
         nextGrid = temp;
     }
+
 
     private void updateGUI() {
         for (int row = 0; row < GRID_ROWS; row++) {
@@ -191,6 +200,7 @@ public class GameofLifeMusicGenerator {
         }
     }
 
+
     private class CellMouseListener extends MouseAdapter {
 
         private int row;
@@ -200,6 +210,7 @@ public class GameofLifeMusicGenerator {
             this.row = row;
             this.col = col;
         }
+
 
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -221,6 +232,7 @@ public class GameofLifeMusicGenerator {
         }
     }
 
+
         private class NextGenerationButtonListener implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -234,6 +246,7 @@ public class GameofLifeMusicGenerator {
             }
         }
 
+
     private void generateNotes() {
         selectedCellNotes.clear();
 
@@ -246,6 +259,7 @@ public class GameofLifeMusicGenerator {
             }
         }
     }
+
     private class RandomCombinationButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -281,6 +295,7 @@ public class GameofLifeMusicGenerator {
         }
     }
 
+
     private void cleanGrid() {
         for (int row = 0; row < GRID_ROWS; row++) {
             for (int col = 0; col < GRID_COLUMNS; col++) {
@@ -291,38 +306,6 @@ public class GameofLifeMusicGenerator {
         selectedCellNotes.clear();
     }
 
-    private class PlayButtonListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (isPaused) {
-                generateNotes();
-                playGeneration();
-            }
-        }
-    }
-
-    private void playGeneration() {
-        Thread playThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int row = 0; row < GRID_ROWS; row++) {
-                    for (int col = 0; col < GRID_COLUMNS; col++) {
-                        if (grid[row][col]) {
-                            int note = getNoteForCell(row, col);
-                            playMidiNote(note);
-                            try {
-                                Thread.sleep(300); // Delay between notes (adjust as needed)
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-                stopMidiNote();
-            }
-        });
-        playThread.start();
-    }
 
     private class PlayRowOrderButtonListener implements ActionListener {
         @Override
@@ -333,6 +316,7 @@ public class GameofLifeMusicGenerator {
             }
         }
     }
+
 
     private void playNotesInRowOrder() {
         Thread playThread = new Thread(new Runnable() {
@@ -357,6 +341,7 @@ public class GameofLifeMusicGenerator {
         playThread.start();
     }
 
+
     private class PlayColumnOrderButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -366,6 +351,7 @@ public class GameofLifeMusicGenerator {
             }
         }
     }
+
 
     private void playNotesInColumnOrder() {
         Thread playThread = new Thread(new Runnable() {
@@ -390,6 +376,7 @@ public class GameofLifeMusicGenerator {
         playThread.start();
     }
 
+
     private int getNoteForCell(int row, int col) {
         int columnIndex = col % notesForRow.length;
         return notesForRow[columnIndex];
@@ -411,8 +398,9 @@ public class GameofLifeMusicGenerator {
         }
     }
 
+
     public static void main(String[] args) {
-        GameofLifeMusicGenerator game = new GameofLifeMusicGenerator();
+        GameofLifeMelodyGenerator game = new GameofLifeMelodyGenerator();
         game.run();
     }
 }
