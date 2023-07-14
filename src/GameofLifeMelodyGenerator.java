@@ -143,11 +143,13 @@ public class GameofLifeMelodyGenerator {
 
 
     private void playMidiNote(int note) {
+
         midiChannel.noteOn(note, 100);
     }
 
 
     private void stopMidiNote() {
+
         midiChannel.allNotesOff();
     }
 
@@ -229,6 +231,7 @@ public class GameofLifeMelodyGenerator {
             }
         }
 
+
         private int getNoteForCell(int row, int col) {
             int columnIndex = col % notesForRow.length;
             return notesForRow[columnIndex];
@@ -263,6 +266,7 @@ public class GameofLifeMelodyGenerator {
         }
     }
 
+
     private class RandomCombinationButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -271,6 +275,7 @@ public class GameofLifeMelodyGenerator {
                 updateGUI();
             }
         }
+
 
         private void generateRandomCombination() {
             for (int row = 0; row < GRID_ROWS; row++) {
