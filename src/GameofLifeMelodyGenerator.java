@@ -4,7 +4,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.sound.midi.*;
-
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +16,13 @@ public class GameofLifeMelodyGenerator {
     private static final int BUTTON_WIDTH = 150;
     private static final int BUTTON_HEIGHT = 45;
     private static final int DELAY = 100;
-    private static final int[] notesForRow = {55,57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77};
+    private int[][] notesForRowByScale = {
+            {55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77},
+            {55, 57, 58, 60, 62, 63, 65, 67, 69, 70, 72, 74, 75, 77}
+        };
     private boolean[][] grid;
     private boolean[][] nextGrid;
-    private String[] columnLabels = {"G3","A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5","E5","F5"};
+    private String[] columnLabels = {"5","6", "7", "1", "2", "3", "4", "5", "6", "7", "1", "2","3","4"};
     private JPanel[][] cellPanels;
     private JFrame frame;
     private JPanel controlPanel;
@@ -30,11 +32,15 @@ public class GameofLifeMelodyGenerator {
     private JButton cleanButton;
     private JButton playRowOrderButton;
     private JButton playColumnOrderButton;
+    private JButton selectScaleButton;
     private boolean isPaused;
     private Synthesizer synthesizer;
     private MidiChannel midiChannel;
     private List<Integer> notesToPlay;
     private List<Integer> selectedCellNotes;
+    private String[] scaleOptions = {"Major", "Minor"};
+    private String selectedScale = "Major";
+    private int[] notesForRow = notesForRowByScale[0];
 
     public GameofLifeMelodyGenerator() {
 
@@ -51,6 +57,7 @@ public class GameofLifeMelodyGenerator {
         cleanButton = new JButton("Clean");
         playRowOrderButton = new JButton("Play in Row Order");
         playColumnOrderButton = new JButton("Play in Column Order");
+        selectScaleButton = new JButton("Select Scale");
         isPaused = true;
         initializeGUI();
         initializeGrid();
@@ -60,6 +67,9 @@ public class GameofLifeMelodyGenerator {
 
     private void initializeGUI() {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        ImageIcon icon = new ImageIcon("Unknown.png");
+        frame.setIconImage(icon.getImage());
 
         // Grid Panel
         gridPanel.setLayout(new GridLayout(GRID_ROWS, GRID_COLUMNS));
@@ -87,15 +97,18 @@ public class GameofLifeMelodyGenerator {
         playRowOrderButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         playColumnOrderButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
         cleanButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
+        selectScaleButton.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
         controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
+        controlPanel.add(selectScaleButton);
         controlPanel.add(randomCombinationButton);
         controlPanel.add(nextGenerationButton);
         controlPanel.add(playRowOrderButton);
         controlPanel.add(playColumnOrderButton);
         controlPanel.add(cleanButton);
 
+        selectScaleButton.addActionListener(new SelectScaleButtonListener());
         randomCombinationButton.addActionListener(new RandomCombinationButtonListener());
         nextGenerationButton.addActionListener(new NextGenerationButtonListener());
         cleanButton.addActionListener(new CleanButtonListener());
@@ -115,7 +128,6 @@ public class GameofLifeMelodyGenerator {
         frame.pack();
         frame.setVisible(true);
     }
-
 
 
     private void initializeGrid() {
@@ -143,13 +155,11 @@ public class GameofLifeMelodyGenerator {
 
 
     private void playMidiNote(int note) {
-
         midiChannel.noteOn(note, 100);
     }
 
 
     private void stopMidiNote() {
-
         midiChannel.allNotesOff();
     }
 
@@ -231,7 +241,6 @@ public class GameofLifeMelodyGenerator {
             }
         }
 
-
         private int getNoteForCell(int row, int col) {
             int columnIndex = col % notesForRow.length;
             return notesForRow[columnIndex];
@@ -247,7 +256,7 @@ public class GameofLifeMelodyGenerator {
                     updateGrid();
                     updateGUI();
                     swapGrids();
-                    updateGUI(); // Add this line to update the GUI after generating the next generation
+                    updateGUI();
                 }
             }
         }
@@ -267,6 +276,26 @@ public class GameofLifeMelodyGenerator {
     }
 
 
+    private class SelectScaleButtonListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (isPaused) {
+                String[] options = {"Major", "Minor"};
+                String selectedOption = (String) JOptionPane.showInputDialog(frame, "Select a scale:", "Select Scale", JOptionPane.PLAIN_MESSAGE, null, options, selectedScale);
+
+                if (selectedOption != null) {
+                    selectedScale = selectedOption;
+                    if ("Major".equals(selectedScale)) {
+                        notesForRow = new int[]{55, 57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77};
+                    } else if ("Minor".equals(selectedScale)) {
+                        notesForRow = new int[]{55, 57, 58, 60, 62, 63, 65, 67, 69, 70, 72, 74, 75, 77};
+                    }
+                }
+            }
+        }
+    }
+
+
     private class RandomCombinationButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -275,7 +304,6 @@ public class GameofLifeMelodyGenerator {
                 updateGUI();
             }
         }
-
 
         private void generateRandomCombination() {
             for (int row = 0; row < GRID_ROWS; row++) {
@@ -327,24 +355,21 @@ public class GameofLifeMelodyGenerator {
 
 
     private void playNotesInRowOrder() {
-        Thread playThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int row = 0; row < GRID_ROWS; row++) {
-                    for (int col = 0; col < GRID_COLUMNS; col++) {
-                        if (grid[row][col]) {
-                            int note = getNoteForCell(row, col);
-                            playMidiNote(note);
-                            try {
-                                Thread.sleep(300); // Delay between notes (adjust as needed)
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+        Thread playThread = new Thread(() -> {
+            for (int row = 0; row < GRID_ROWS; row++) {
+                for (int col = 0; col < GRID_COLUMNS; col++) {
+                    if (grid[row][col]) {
+                        int note = getNoteForCell(row, col);
+                        playMidiNote(note);
+                        try {
+                            Thread.sleep(300); // Delay between notes (adjust as needed)
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }
                 }
-                stopMidiNote();
             }
+            stopMidiNote();
         });
         playThread.start();
     }
